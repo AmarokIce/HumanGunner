@@ -1,6 +1,7 @@
 package club.someoneice.humangunner;
 
 import com.craftix.hostile_humans.entity.entities.Human;
+import com.craftix.hostile_humans.entity.entities.HumanInventoryGenerator;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -17,12 +18,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLLoader;
+import tallestegg.guardvillagers.entities.Guard;
 
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 @Mod(HumanGunner.ID)
 public class HumanGunner {
@@ -34,6 +37,7 @@ public class HumanGunner {
     private static final Gson gson = (new GsonBuilder()).disableHtmlEscaping().setPrettyPrinting().create();
 
     private static boolean isLoadingConfig = false;
+    private static final Random random = new Random();
 
     public HumanGunner() {
     }
@@ -51,9 +55,7 @@ public class HumanGunner {
             JsonObject config = JsonParser.parseReader(new FileReader(configFile)).getAsJsonObject();
             globe = config.get("globe").getAsDouble();
             JsonObject data = config.getAsJsonObject("guns");
-            data.entrySet().forEach(it -> {
-                guns.put(ResourceLocation.tryParse(it.getKey()), it.getValue().getAsInt());
-            });
+            data.entrySet().forEach(it -> guns.put(ResourceLocation.tryParse(it.getKey()), it.getValue().getAsInt()));
             placeGuns();
         }
         catch (IOException ignored) {}
@@ -76,7 +78,25 @@ public class HumanGunner {
         List<ResourceLocation> gunItems = gunList.get(index).stream().toList();
         index = human.getLevel().getRandom().nextInt(gunItems.size());
         human.setItemSlot(EquipmentSlot.MAINHAND, GunItemBuilder.create().setId(gunItems.get(index)).build());
+        human.putItemAway(HumanInventoryGenerator.tier2Weapons[random.nextInt(0, HumanInventoryGenerator.tier2Weapons.length)].getDefaultInstance());
     }
+
+    public static void hook(Guard human) {
+        if (!isLoadingConfig) {
+            setConfig();
+            isLoadingConfig = true;
+        }
+
+        if (Math.random() > globe) {
+            return;
+        }
+
+        int index = randomInt(new IntOpenHashSet(gunList.keySet()));
+        List<ResourceLocation> gunItems = gunList.get(index).stream().toList();
+        index = human.getLevel().getRandom().nextInt(gunItems.size());
+        human.setItemSlot(EquipmentSlot.MAINHAND, GunItemBuilder.create().setId(gunItems.get(index)).build());
+    }
+
 
     private static int randomInt(IntSet ints) {
         int sum = ints.intStream().sum();

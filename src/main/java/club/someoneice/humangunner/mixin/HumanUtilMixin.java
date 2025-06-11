@@ -1,7 +1,7 @@
 package club.someoneice.humangunner.mixin;
 
 import com.craftix.hostile_humans.HumanUtil;
-import com.tacz.guns.api.item.IGun;
+import com.tacz.guns.api.item.gun.AbstractGunItem;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -16,6 +16,6 @@ public class HumanUtilMixin {
             return;
         }
 
-        cir.setReturnValue(value.getItem() instanceof IGun);
+        cir.setReturnValue(value.getItem() instanceof AbstractGunItem);
     }
 }
